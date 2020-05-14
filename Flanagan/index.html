@@ -91,6 +91,64 @@ function calculate() {
             chart();        //При вызове без аргументов очищает диаграмму
         }
 }
+//Сохранить ввод пользователя в свойствах объекта localStorage. Значение этих свойств будут доступны при повторном посещение страницы. В некоторых браузерах ( например, в Firefox) возможность сохранения не поддерживается, если страница открывается с адресом URL вида file://. Однако она поддерживается при открытии страницы через HTTP.
+function save(amount, apr, years, zipcode) {
+    if (window.localStorage) { //выполняется сохранение, если поддерживается
+        localStorage.loan_amount = amount;
+        localStorage.loan_apr = apr;
+        localStorage.loan_years = years;
+        localStorage.loan_zipcode = zipcode;
+    }
+}
+//Автоматически восстановить поля ввода при загрузке документа.
+window.onload = function() {
+    //Если броузер поддерживает localStorage и имеются сохраненные данные
+    if (window.localStorage && localStorage.loan_amount) {
+        document.getElementById("amount").value = localStorage.loan_amount;
+        document.getElementById("apr").value = localStorage.loan_apr;
+        document.getElementById("years").value = localStorage.loan_years;
+        document.getElementById("zipcode").value = localStorage.loan_zipcode;
+    }
+};
+//Передать ввод пользователю серверному сценарию, который может (теоретически) возвращать список ссылок на сайты местных кредитных учереждений, готовых предоставить кредит, Данный пример не включает фактическую реализацию такого сценария поиска кредитных учреждений. Но если такой сценарий уже имеется, данная функция могла бы работать с ним.
+function getLanders(amount, apr, years, zipcode)    {
+    //Если броузер не поддерживает объект XMLHttpRequest, не делать ничего.
+    if (!window.XMLHttpRequest) return;
+
+    //Отыскать элемент для отображения списка кредитных организаций
+    var ad = document.getElementById("lenders");
+    if (!ad) return;                                //Выйти, если элемент отсутствует
+    //Преобразовать ввод пользователя в параметры запроса в строке URL
+    var url = "getLenders.php" +                    //Адрес URL службы плюс
+          "?amt=" +encodeURIComponent(amount) +     //данные пользователя
+          "&apr=" +encodeURIComponent(apr) +        //в строке запроса
+          "&yrs=" +encodeURIComponent(years) +
+          "&zip=" +encodeURIComponent(zipcode);
+          //Получить сожердимое по заданному адресу URL с помощью XMLHttpRequest
+    var req = new XMLHttpRequest();                 //Создать новый запрос
+    req.open("Get", url);                           //Указать тип запроса HTTP GET для URL
+    req.sen(null);                                  //Отправит запрос без тела
+
+    // Перед возвратом зарегистрировать обработчик события, который будет вызываться при получении HTTP-ответа от сервера. Такой прием асинхронного программирования является довольно обычным в клиентском JavaScript.
+    req.onreadystatechange = function() {
+        if (req.readyState == 4 && req.status == 200)   {
+            // Если мы попали сюда, следовательно был полученый корректный HTTP - ответ
+            var response = req.responseText;         //HTTP-ответ в виде строки
+            var lenders = JSON.parse(response);      //Преобразовать в JS-массив
+
+            //Преобразовать массив объектов lender в HTML-строку
+            var list ="";
+            for (var i = 0; i < lenders.length; I++)  {
+                list +="<li><a href='" + lenders[i].url + "'>" +
+                    lenders[i].name + "</a>";
+            }
+            //Отобразить полученную HTML-строку в элементе,
+            //Ссылка на который была получена выше.
+            ad.innerHTML = "<ul>" + list + "</ul>";
+
+        }
+    }
+}
 </script>
     </body>
 </html>
