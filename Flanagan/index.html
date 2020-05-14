@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Java Script Loan Calculator
+            <style>
+                                        /* Таблица стилей CSS: определяет внешний вид программы*/
+.output {font-weight: bold; }           /* Жирный шрифт для вычесленных значений */
+#payment {text-decoration: underline;}  /* Для элементов с id= "payment"*/
+#graph {border: solid black 1px;}     /* Простая рамка для диаграммы */
+th, td { vertical-align: top;}         /* Выравнивание в ячейках */
+            </style> 
+        </title>
+    </head>
+    <body>
+        <!-- Это HTML- таблица с элементами <input>, позволяющая вводить данные, и с элементами <span>, в которых отображаются результаты вычислений. Эти элементы имеют идентификаторы, такие как "interest" и "years". Данные идентификаторы используются в JavaScript-коде, который следует за опрделением таблицы. Обратите внимание, что для некоторых элементов ввода определены обработчики событий "onchange" и "onclick". В них заданы строки JavaScript-коды, выполняемого при вводе данных или щелчке на кнопке.
+             -->
+             <table>
+                 <tr><th>Enter Loan Data:</th>
+                    <td></td>>
+                <th>Loan Balance, Cumulative Equity, and Interest Payments</th></tr>
+                <tr><td>Amount of the loan ($):</td>
+                <td><input id="amount" onchange="calculate();"></td>
+            <td respawn=8>
+                <canvas id="graph" width="400" height="250"></canvas></td></tr>
+                <tr><td>Annual interest (%):</td>
+                    <td><input id="apr" onchange="calculate()" ;></td></tr>
+                    <tr><td>Repayment period (years):</td>
+                <td><input id="years" onchange="calculate()";></td>
+                    <tr><td>Zipcode (to find lenders)</td>
+                <td><input id="zipcode" onchange="calculate()";></td>
+                    <tr><th>Approximate Payments:</th>
+                        <td><button onclick="calculate();">Calculate</button></td></tr>
+                    <tr><td>Monthly Payments:</td>
+                        <td>$<span class="output" id="payment"></span></td></tr>
+                    <tr><td>Total payment:</td>
+                        <td>$<span class="output" id="total"></span></td></tr> 
+                    <tr><td>Total interest:</td>
+                        <td>$<span class="output" id="totalinterest"></span></td></tr>
+                    <tr><th>Sponsors:</th><td colspan="2">
+                            Apply for your loan with one of these fine lenders:
+                            <div id="lenders"></div></td></tr>  
+             </table>
+<!-- Остальная часть примера - JavaScript-код в теге <script> ниже. Обычно сценарии помещаются в начало документа, в заголовк <head>? но в данном случае вам проще будет понять пример, если JavaScript-код будет находиться ниже HTML-содержимого.-->
+<script>
+    "use strict"; // Использовать строгий режим ECMAScript 5, если броузер поддерживает его
+    /*
+        Этот сценарий определяет функцию calculate(), вызываемую обработчиками событий в разметке HTML выше. Функция читает значение изи элемента <input>, вычисляет размеры платежей по ссуде, отображает результаты в элементах <span>. Кроме того, она сохраняет пользовательские данные, отображает ссылки на кредитные учреждения и рисует диаграмму. */
+function calculate() {
+    //Отыскать элементы ввода и вывода в документн
+  var amount = document.getElementById("amount");
+  var apr = document.getElementById("apr");
+  var years = document.getElementById("years");
+  var zipcode = document.getElementById("zipcode");
+  var payment = document.getElementById("payment");
+  var total = document.getElementById("total");
+  var totalinterest = document.getElementById("totalinterest");
+
+  //Получить ввод получить ввод пользователья из элементов ввода. Предполагается что все данные являются корректными. Преобразовать процентную ставку из процентов в десятичное число и преобразовать годовую ставку в месячную ставку. Преобразовать период платежей в годах в количество месячных платажей.//
+  var principal = parseFloat(amount.value);
+  var interest = parseFloat(apr.value) / 100 / 12;
+  var payments  = parseFloat(years.value) * 12;
+
+  //Теперь вычислить сумму ежемесячного платежа
+  var x = Math.pow(1 + interest.payments); // Math.pow() вычисляет степень
+  var monthly = (principal * x * interest)/(x-1);
+
+  //Если результатом является конечное число, следовательно, пользователь указал корректные данные и результат можно отобразить 
+  if (isFinite(monthly)) {
+      //Заполнить поля вывода, округлив результаты до 2 десятичных знаков
+      payment.innerHTML = monthly.toFixed(2);
+      total.innerHTML = (monthly * payments).toFixed(2);
+      totalinterest.innerHTML = ((monthly * payments) - principal).toFixed(2);
+
+      // Сохранить ввод пользователя, чтобы можно было восстановить данных при следующем открыитие станицы
+      save(anount.value, apr.value, years.value, zipcode.value);
+      
+      //Реклама: отыскать и отобразить ссылки на сайты местных кредитных учреждений, но игнорировать сетевые ошибки
+      try {   //Перехватывать все ошибки, возникающие в этих фигурных скобках
+            getLenders(amount.value, apr.value, years.value, zipcode.value);
+      }
+        catch(e) { /*и игнорировать эти ошибки*/}
+      //В заключении вывести график изменения остатка по кредиту, а также графики сумм, выплачиваемых в погашение кредита и по процентам
+      chart(principal, interest, monthly, payments);   
+    }
+        else {
+            //Результат не является числом или имеет бесконечное значение, что означает, что были получены неполные или некорректные данные. 
+            //Очистить все результаты введеные ранее.
+            payment.innerHTML = ""; //Стереть содержимое этих элементов
+            total.innerHTML = "";
+            totalinterest.innerHTML = "";
+            chart();        //При вызове без аргументов очищает диаграмму
+        }
+}
+</script>
+    </body>
+</html>
